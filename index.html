@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>DFS Path Finder</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            background: linear-gradient(#ddd6f3, #faaca8);
+            height: 100vh;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+        }
+
+        .form-container {
+            display: flex;
+            justify-content: center;
+            padding: 50px 20px;
+            background-color: #fff;
+            margin-bottom: 50px;
+            border-radius: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 30px 0;
+            font-size: 50px;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .btns {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 7px;
+        }
+
+        input {
+            padding: 3px 10px;
+            width: 100%;
+        }
+
+        .btn {
+            width: 49%;
+            border: none;
+            outline: none;
+            align-items: center;
+            background-clip: padding-box;
+            background-color: #fa6400;
+            border: 1px solid transparent;
+            border-radius: .25rem;
+            box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+            box-sizing: border-box;
+            color: #fff;
+            cursor: pointer;
+            display: inline-flex;
+            font-family: system-ui, -apple-system, system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            justify-content: center;
+            line-height: 1.25;
+            margin: 0;
+            min-height: 3rem;
+            padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+            position: relative;
+            text-decoration: none;
+            transition: all 250ms;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            vertical-align: baseline;
+            width: 49%;
+        }
+
+        .btn:hover,
+        .btn:focus {
+            background-color: #a14406;
+            box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+        }
+
+        .btn:active {
+            background-color: #a14406;
+            box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+        }
+
+        #resultTable {
+            display: none;
+        }
+
+        #path-title {
+            margin-top: 20px;
+        }
+
+        #path {
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>DFS</h1>
+    <div class="container">
+        <div class="form-container">
+            <form>
+                <div class="form-control">
+                    <label for="verticesInput">Nhập danh sách đỉnh (cách nhau bằng dấu phẩy):</label><br>
+                    <input placeholder="Example: A, B, C..." type="text" id="verticesInput"><br><br>
+                </div>
+                <div class="form-control">
+                    <label for="edgesInput">Nhập danh sách cạnh (ví dụ: A-B,B-C):</label><br>
+                    <input placeholder="Example: A-B, A-C..." type="text" id="edgesInput"><br><br>
+                </div>
+                <div class="form-control">
+                    <label for="startInput">Nhập đỉnh bắt đầu:</label><br>
+                    <input placeholder="Example: A" type="text" id="startInput"><br><br>
+                </div>
+                <div class="form-control">
+                    <label for="endInput">Nhập đỉnh kết thúc:</label><br>
+                    <input placeholder="Example: C" type="text" id="endInput"><br><br>
+                </div>
+                <div class="btns">
+                    <button class="btn" id="btn-result">Kết quả</button><br><br>
+                    <button class="btn" id="btn-refresh">Làm mới</button><br><br>
+                </div>
+            </form>
+        </div>
+
+        <div class="result-container">
+            <table id="resultTable">
+                <thead>
+                    <tr>
+                        <th>Expanded Node</th>
+                        <th>Adjacency List</th>
+                        <th>List Q</th>
+                        <th>List L</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Dữ liệu sẽ được thêm vào đây -->
+                </tbody>
+            </table>
+
+            <h2 id="path-title"></h2>
+            <p id="path"></p>
+        </div>
+    </div>
+</body>
+<script src="dsf.js"></script>
+
+</html>
