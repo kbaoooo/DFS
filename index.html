@@ -4,6 +4,8 @@
 <head>
     <title>DFS Path Finder</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@100&family=Montserrat:wght@200;300;400;500;600;700&family=Poppins:wght@200;300;400;500;600&family=Roboto:wght@300;400;500;700;900&family=Space+Grotesk:wght@300&display=swap');
+
         * {
             padding: 0;
             margin: 0;
@@ -11,22 +13,88 @@
         }
 
         html {
-            background: linear-gradient(#ddd6f3, #faaca8);
+            font-family: 'Montserrat', sans-serif;
             height: 100vh;
+            background: linear-gradient(45deg, #2F1C53, #A46DFF, #F6D1FD);
         }
 
-        .container {
-            display: flex;
-            justify-content: center;
+        .title {
+            color: #f7f0f0;
         }
 
-        .form-container {
+        .main-content {
             display: flex;
             justify-content: center;
-            padding: 50px 20px;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .form-insert {
             background-color: #fff;
-            margin-bottom: 50px;
             border-radius: 20px;
+            padding: 50px 60px;
+            border-bottom-right-radius: 0;
+            box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+        }
+
+        .add-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: #7b2bbe;
+            display: inline-block;
+            text-align: center;
+            line-height: 60px;
+            transition: .25s linear;
+        }
+
+        .add-logo i {
+            font-weight: 600;
+            color: #fff;
+            font-size: 22px;
+        }
+
+        .file-insert {
+            display: flex;
+            justify-content: center;
+            background-color: #fff;
+        }
+
+        .file-insert:hover .add-logo {
+            background-color: #2F1C53;
+        }
+
+        .file-insert:hover label {
+            border-color: #2F1C53;
+        }
+
+        .file-insert label {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin: 0;
+            border-radius: 40px;
+            border: 3px dotted #7b2bbe;
+            cursor: pointer;
+            align-items: center;
+            padding: 40px 90px;
+            width: 444px;
+            height: 190px;
+        }
+
+        .file-text {
+            font-size: 20px;
+            margin-top: 20px;
+            color: #5f5d5d;
+        }
+
+        .highlight-text {
+            color: #7225b1 !important;
+        }
+
+        input {
+            display: none;
         }
 
         h1 {
@@ -54,7 +122,7 @@
         .btns {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            margin-top: 30px;
         }
 
         label {
@@ -68,13 +136,41 @@
             width: 100%;
         }
 
+        .algos {
+            display: flex;
+            width: 563px;
+            justify-content: right;
+        }
+
+        .algos-item {
+            border: 0;
+            outline: 0;
+            width: 100px;
+            height: 60px;
+            background-color: #fff;
+            cursor: pointer;
+            box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+            color: #7b2bbe;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .algos-item:hover {
+            color: #b691fa;
+        }
+
+        .algos-item.active {
+            color: #b691fa;
+        }
+
         .btn {
-            width: 49%;
+            width: 33.33%;
             border: none;
             outline: none;
             align-items: center;
             background-clip: padding-box;
-            background-color: #fa6400;
+            background-color: #7b2bbe;
             border: 1px solid transparent;
             border-radius: .25rem;
             box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
@@ -97,17 +193,15 @@
             -webkit-user-select: none;
             touch-action: manipulation;
             vertical-align: baseline;
-            width: 49%;
         }
 
-        .btn:hover,
-        .btn:focus {
-            background-color: #a14406;
+        .btn:hover {
+            background-color: #2F1C53;
             box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
         }
 
         .btn:active {
-            background-color: #a14406;
+            background-color: #2F1C53;
             box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
         }
 
@@ -123,12 +217,13 @@
             font-weight: 600;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
-    <h1>DFS</h1>
+    <h1 class="title">DFS</h1>
     <div class="container">
-        <div class="form-container">
+        <!-- <div class="form-container">
             <form>
                 <div class="form-control">
                     <label for="verticesInput">Nhập danh sách đỉnh (cách nhau bằng dấu phẩy):</label><br>
@@ -151,6 +246,28 @@
                     <button class="btn" id="btn-refresh">Làm mới</button><br><br>
                 </div>
             </form>
+        </div> -->
+        <div class="main-content">
+            <div class="form-insert">
+                <div class="file-insert">
+                    <label for="fileInput">
+                        <span class="add-logo"><i class="fa-solid fa-upload"></i></span>
+                        <p class="file-text"> <span class="highlight-text">Drag</span> & <span
+                                class="highlight-text">drop</span> any file here</p>
+                    </label>
+                    <input type="file" id="fileInput" />
+                </div>
+                <div class="btns">
+                    <button class="btn" id="btn-result">Result</button><br><br>
+                    <button class="btn" id="btn-result">Export File</button><br><br>
+                    <button class="btn" id="btn-refresh">Refresh</button><br><br>
+                </div>
+            </div>
+            <div class="algos">
+                <button class="algos-item active" data-math="dfs" onclick="buttonClicked(this)">dfs</button>
+                <button class="algos-item" data-math="hillClimb" onclick="buttonClicked(this)">hill climbing</button>
+                <button class="algos-item" data-math="branchBound" onclick="buttonClicked(this)">brach & bound</button>
+            </div>
         </div>
 
         <div class="result-container">
@@ -174,5 +291,6 @@
     </div>
 </body>
 <script src="dsf.js"></script>
+<script src="readfile.js"></script>
 
 </html>

@@ -1,10 +1,51 @@
+//handle event
+const fileInput = document.getElementById("fileInput");
+const refreshBtn = document.getElementById("btn-refresh");
+const resultBtn = document.getElementById("btn-result");
+let currentAlgorithm = 'dfs'
+
+fileInput.addEventListener("change", (e) => {
+  if (e.target.files[0].name.length > 0) {
+    const fileIcon = document.querySelector(".fa-upload");
+    const fileLabel = document.querySelector(".file-text");
+    fileIcon.className = "fa-solid fa-check";
+    fileLabel.textContent = e.target.files[0].name;
+  }
+});
+
+const buttonClicked = (btn) => {
+  const btns = document.querySelectorAll(".algos-item");
+  for (let i = 0; i < btns.length; i++) {
+    if (btn === btns[i]) {
+      currentAlgorithm = btns[i].dataset.math;
+      if (!btns[i].classList.contains("active")) {
+        btns[i].classList.add("active");
+      } else {
+        break;
+      }
+    } else {
+      btns[i].classList.remove("active");
+    }
+  }
+};
+
+refreshBtn.addEventListener("click", () => {
+  location.reload();
+});
+
+resultBtn.addEventListener("click", () => {
+  if(!fileInput.files[0]) {
+    alert("Please choose 1 file. No file chosen now!")
+  } else {
+    alert(1)
+    //handle logic algorithm
+  }
+})
 
 const verticesInput = document.getElementById("verticesInput");
 const edgesInput = document.getElementById("edgesInput");
 const startInput = document.getElementById("startInput");
 const endInput = document.getElementById("endInput");
-const btnResult = document.getElementById("btn-result");
-const refreshBtn = document.getElementById("btn-refresh");
 
 let stopFlag = false;
 let listQ = [];
@@ -38,7 +79,7 @@ class Graph {
       path.push(vertex);
 
       if (vertex === endVertex) {
-        return path; 
+        return path;
       }
 
       for (const neighbor of this.adjacencyList[vertex]) {
@@ -48,16 +89,18 @@ class Graph {
         }
       }
 
-      path.pop(); 
+      path.pop();
     };
 
     const pathArr = dfsHelper(startVertex);
     console.log(pathArr);
-    pathTitle.innerHTML = "Đường đi từ " + startInput.value + " đến " + endInput.value + ": ";
-    if(pathArr !== null) {
+    pathTitle.innerHTML =
+      "Đường đi từ " + startInput.value + " đến " + endInput.value + ": ";
+    if (pathArr !== null) {
       pathHtml.innerHTML = pathArr.join(" -> ");
     } else {
-      pathHtml.innerHTML = "Không có đường đi từ " + startInput.value + " đến " + endInput.value;
+      pathHtml.innerHTML =
+        "Không có đường đi từ " + startInput.value + " đến " + endInput.value;
     }
   }
 
@@ -100,12 +143,12 @@ class Graph {
   };
 
   drawTable = () => {
-    const table = document.getElementById('resultTable');
+    const table = document.getElementById("resultTable");
     const tableBody = document.getElementById("tableBody");
-    const container = document.querySelector('.container')
+    const container = document.querySelector(".container");
 
-    table.style.display = 'block';
-    container.style.justifyContent = 'space-around';
+    table.style.display = "block";
+    container.style.justifyContent = "space-around";
 
     this.tableResult.forEach((row) => {
       const newRow = document.createElement("tr");
@@ -141,31 +184,31 @@ class Graph {
 
 const graph = new Graph();
 
-btnResult.addEventListener("click", () => {
-  btnResult.disabled = true;
-  btnResult.style.backgroundColor = '#a14406';
-  btnResult.style.color = "gray";
-  btnResult.style.cursor = "default";
-  const verticesInputArr = verticesInput.value.trim().split(", ");
-  const edgesInputArr = edgesInput.value.trim().split(", ");
+// btnResult.addEventListener("click", () => {
+//   btnResult.disabled = true;
+//   btnResult.style.backgroundColor = '#a14406';
+//   btnResult.style.color = "gray";
+//   btnResult.style.cursor = "default";
+//   const verticesInputArr = verticesInput.value.trim().split(", ");
+//   const edgesInputArr = edgesInput.value.trim().split(", ");
 
-  for(let i = 0; i < verticesInputArr.length; i++) {
-    graph.addVertex(verticesInputArr[i])
-  }
+//   for(let i = 0; i < verticesInputArr.length; i++) {
+//     graph.addVertex(verticesInputArr[i])
+//   }
 
-  for(let i = 0; i < edgesInputArr.length; i++) {
-    const singleVertice = edgesInputArr[i].split('-');
-    graph.addEdge(singleVertice[0], singleVertice[1])
-  }
+//   for(let i = 0; i < edgesInputArr.length; i++) {
+//     const singleVertice = edgesInputArr[i].split('-');
+//     graph.addEdge(singleVertice[0], singleVertice[1])
+//   }
 
-  graph.createTable(startInput.value);
-  graph.drawTable();
-  graph.findPath(startInput.value, endInput.value);
-});
+//   graph.createTable(startInput.value);
+//   graph.drawTable();
+//   graph.findPath(startInput.value, endInput.value);
+// });
 
-refreshBtn.addEventListener('click', () => {
-  location.reload();
-})
+// refreshBtn.addEventListener('click', () => {
+//   location.reload();
+// })
 
 // A, B, C, D, E, F, G, K, I
 // A-B, A-C, A-D, B-I, B-G, I-G, C-E, C-F, E-G, E-K, D-C, D-F, F-K
