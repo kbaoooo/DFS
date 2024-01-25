@@ -44,7 +44,7 @@ class GraphDfs {
 
     // path
     const pathArr = dfsHelper(startVertex);
-    return pathArr.join('->')
+    return pathArr.join("->");
   }
 
   createTable = (node, end, visited = {}) => {
@@ -239,7 +239,7 @@ const buttonClicked = (btn) => {
   const title = document.querySelector(".title");
 
   for (let i = 0; i < btns.length; i++) {
-    if(currentAlgorithm !== btn.dataset.math) {
+    if (currentAlgorithm !== btn.dataset.math) {
       handleRemoveFile();
     }
     if (btn === btns[i]) {
@@ -290,7 +290,7 @@ exportBtn.addEventListener("click", () => {
           }
 
           for (let i = 0; i < edgesArr.length; i++) {
-            edgesArr[i] = edgesArr[i].replace(/\r$/, "")
+            edgesArr[i] = edgesArr[i].replace(/\r$/, "");
             let singleVerticeInEdges = edgesArr[i].split("-");
             graphDfs.addEdge(singleVerticeInEdges[0], singleVerticeInEdges[1]);
           }
@@ -299,10 +299,15 @@ exportBtn.addEventListener("click", () => {
           graphDfs.drawTable();
 
           const table = document.getElementById("resultTable");
-          const rows = Array.from(table.rows).map(row =>
-            Array.from(row.cells).map(cell => padRight(cell.textContent, 20)).join('')
+          const rows = Array.from(table.rows).map((row) =>
+            Array.from(row.cells)
+              .map((cell) => padRight(cell.textContent, 20))
+              .join("")
           );
-          const blob = new Blob([rows.join("\n"), `\n\n\nPath: ${graphDfs.findPath(start, end)}`], { type: "text/plain" });
+          const blob = new Blob(
+            [rows.join("\n"), `\n\n\nPath: ${graphDfs.findPath(start, end)}`],
+            { type: "text/plain" }
+          );
           const downloadLink = document.createElement("a");
           if (window.URL && window.URL.createObjectURL) {
             downloadLink.href = window.URL.createObjectURL(blob);
@@ -355,14 +360,25 @@ resultBtn.addEventListener("click", () => {
         }
       };
       reader.readAsText(fileInput.files[0]);
+
+      scrollToGraph();
     }
   }
 });
 
 // Helpers function
 function padRight(str, length) {
-  return (str + ' '.repeat(length)).slice(0, length);
+  return (str + " ".repeat(length)).slice(0, length);
 }
 
-// A, B, C, D, E, F, G, K, I
-// A-B, A-C, A-D, B-I, B-G, I-G, C-E, C-F, E-G, E-K, D-C, D-F, F-K
+function scrollToGraph() {
+  $(document).ready(function () {
+    $("html, body").animate(
+      {
+        scrollTop: $("#end").offset().top,
+      },
+      500
+    );
+  });
+}
+
