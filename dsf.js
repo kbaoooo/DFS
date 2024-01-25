@@ -1,57 +1,9 @@
-//handle event
-const fileInput = document.getElementById("fileInput");
-const refreshBtn = document.getElementById("btn-refresh");
-const resultBtn = document.getElementById("btn-result");
-let currentAlgorithm = 'dfs'
-
-fileInput.addEventListener("change", (e) => {
-  if (e.target.files[0].name.length > 0) {
-    const fileIcon = document.querySelector(".fa-upload");
-    const fileLabel = document.querySelector(".file-text");
-    fileIcon.className = "fa-solid fa-check";
-    fileLabel.textContent = e.target.files[0].name;
-  }
-});
-
-const buttonClicked = (btn) => {
-  const btns = document.querySelectorAll(".algos-item");
-  for (let i = 0; i < btns.length; i++) {
-    if (btn === btns[i]) {
-      currentAlgorithm = btns[i].dataset.math;
-      if (!btns[i].classList.contains("active")) {
-        btns[i].classList.add("active");
-      } else {
-        break;
-      }
-    } else {
-      btns[i].classList.remove("active");
-    }
-  }
-};
-
-refreshBtn.addEventListener("click", () => {
-  location.reload();
-});
-
-resultBtn.addEventListener("click", () => {
-  if(!fileInput.files[0]) {
-    alert("Please choose 1 file. No file chosen now!")
-  } else {
-    alert(1)
-    //handle logic algorithm
-  }
-})
-
-const verticesInput = document.getElementById("verticesInput");
-const edgesInput = document.getElementById("edgesInput");
-const startInput = document.getElementById("startInput");
-const endInput = document.getElementById("endInput");
-
 let stopFlag = false;
 let listQ = [];
 let listL = [];
 
-class Graph {
+//graph for dfs
+class GraphDfs {
   constructor() {
     this.adjacencyList = {};
     this.tableResult = [];
@@ -68,8 +20,6 @@ class Graph {
   }
 
   findPath(startVertex, endVertex) {
-    const pathTitle = document.getElementById("path-title");
-    const pathHtml = document.getElementById("path");
     const visited = {};
     const path = [];
 
@@ -92,22 +42,15 @@ class Graph {
       path.pop();
     };
 
+    // path
     const pathArr = dfsHelper(startVertex);
-    console.log(pathArr);
-    pathTitle.innerHTML =
-      "Đường đi từ " + startInput.value + " đến " + endInput.value + ": ";
-    if (pathArr !== null) {
-      pathHtml.innerHTML = pathArr.join(" -> ");
-    } else {
-      pathHtml.innerHTML =
-        "Không có đường đi từ " + startInput.value + " đến " + endInput.value;
-    }
+    return pathArr.join('->')
   }
 
-  createTable = (node, visited = {}) => {
+  createTable = (node, end, visited = {}) => {
     if (!visited[node] && !stopFlag) {
       visited[node] = true;
-      const adjacencyList = graph.adjacencyList[node];
+      const adjacencyList = graphDfs.adjacencyList[node];
 
       if (Array.isArray(adjacencyList)) {
         const uniqueListQ = [...new Set([node, ...adjacencyList, ...listQ])];
@@ -129,14 +72,14 @@ class Graph {
           listL: listL.join(", "),
         });
 
-        if (node === endInput.value) {
+        if (node === end) {
           stopFlag = true;
           return;
         }
 
         adjacencyList.forEach((neighbor) => {
           listL.push(neighbor);
-          this.createTable(neighbor, visited);
+          this.createTable(neighbor, end, visited);
         });
       }
     }
@@ -149,7 +92,6 @@ class Graph {
 
     table.style.display = "block";
     container.style.justifyContent = "space-around";
-
     this.tableResult.forEach((row) => {
       const newRow = document.createElement("tr");
 
@@ -168,7 +110,6 @@ class Graph {
       const listLCell = document.createElement("td");
       listLCell.textContent = row.listL;
       newRow.appendChild(listLCell);
-
       tableBody.appendChild(newRow);
     });
 
@@ -180,35 +121,248 @@ class Graph {
       }
     }
   };
+
+  drawGraph = (list) => {
+    // Parse edges to extract unique nodes
+    const edges = list.map((edge) => {
+      edge = edge.replace(/\r$/, "");
+      const [source, target] = edge.split("-");
+      return { source, target };
+    });
+
+    const nodes = Array.from(
+      new Set(edges.flatMap((edge) => [edge.source, edge.target]))
+    ).map((node) => ({ id: node }));
+
+    // Order nodes alphabetically
+    nodes.sort((a, b) => a.id.localeCompare(b.id));
+
+    // Create an SVG container
+    const svg = d3.select("svg");
+
+    // Create links
+    const links = svg
+      .selectAll(".link")
+      .data(edges)
+      .enter()
+      .append("line")
+      .attr("class", "link");
+
+    // Create nodes
+    const nodeElements = svg
+      .selectAll(".node")
+      .data(nodes)
+      .enter()
+      .append("circle")
+      .attr("class", "node")
+      .attr("r", 15);
+
+    // Create labels for nodes (sorted)
+    const labels = svg
+      .selectAll(".label")
+      .data(nodes)
+      .enter()
+      .append("text")
+      .attr("class", "label")
+      .text((d) => d.id);
+
+    // Initialize the D3 force-directed graph simulation
+    const simulation = d3
+      .forceSimulation(nodes)
+      .force(
+        "link",
+        d3
+          .forceLink(edges)
+          .id((d) => d.id)
+          .distance(100)
+      ) // Set link distance
+      .force("charge", d3.forceManyBody().strength(-300)) // Increase repulsive force
+      .force("center", d3.forceCenter(window.innerWidth / 2, 200));
+
+    // Update node and link positions during simulation
+    simulation.on("tick", () => {
+      links
+        .attr("x1", (d) => d.source.x)
+        .attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x)
+        .attr("y2", (d) => d.target.y);
+
+      nodeElements.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+
+      labels.attr("x", (d) => d.x).attr("y", (d) => d.y);
+    });
+
+    let getGraph = document.querySelector(".graph");
+    getGraph.style.display = "block";
+  };
 }
 
-const graph = new Graph();
+//graph for hill climb
 
-// btnResult.addEventListener("click", () => {
-//   btnResult.disabled = true;
-//   btnResult.style.backgroundColor = '#a14406';
-//   btnResult.style.color = "gray";
-//   btnResult.style.cursor = "default";
-//   const verticesInputArr = verticesInput.value.trim().split(", ");
-//   const edgesInputArr = edgesInput.value.trim().split(", ");
+//graph for branch and bound
 
-//   for(let i = 0; i < verticesInputArr.length; i++) {
-//     graph.addVertex(verticesInputArr[i])
-//   }
+const graphDfs = new GraphDfs();
 
-//   for(let i = 0; i < edgesInputArr.length; i++) {
-//     const singleVertice = edgesInputArr[i].split('-');
-//     graph.addEdge(singleVertice[0], singleVertice[1])
-//   }
+//handle event
+const refreshBtn = document.getElementById("btn-refresh");
+const resultBtn = document.getElementById("btn-result");
+const exportBtn = document.getElementById("btn-export");
 
-//   graph.createTable(startInput.value);
-//   graph.drawTable();
-//   graph.findPath(startInput.value, endInput.value);
-// });
+let currentAlgorithm = "dfs";
 
-// refreshBtn.addEventListener('click', () => {
-//   location.reload();
-// })
+const handleChangeFile = (e) => {
+  const fileInput = document.getElementById("fileInput");
+  if (fileInput.files[0]) {
+    const fileIcon = document.querySelector(".fa-upload");
+    const fileLabel = document.querySelector(".file-text");
+    fileIcon.className = "fa-solid fa-check";
+    fileLabel.textContent = fileInput.files[0].name;
+  } else {
+    if (document.querySelector(".fa-check")) {
+      const fileIcon = document.querySelector(".fa-check");
+      const fileLabel = document.querySelector(".file-text");
+      fileIcon.className = "fa-solid fa-upload";
+      fileLabel.innerHTML = `<span class="highlight-text">Drag</span> & <span
+      class="highlight-text">drop</span> any file here`;
+    }
+  }
+};
+
+const handleRemoveFile = () => {
+  const fileInput = document.getElementById("fileInput");
+  fileInput.value = "";
+  handleChangeFile();
+};
+
+const buttonClicked = (btn) => {
+  const btns = document.querySelectorAll(".algos-item");
+  const title = document.querySelector(".title");
+
+  for (let i = 0; i < btns.length; i++) {
+    if(currentAlgorithm !== btn.dataset.math) {
+      handleRemoveFile();
+    }
+    if (btn === btns[i]) {
+      currentAlgorithm = btns[i].dataset.math;
+      let currentAlgorithmTitle = btns[i].dataset.title;
+
+      title.textContent = currentAlgorithmTitle;
+
+      if (!btns[i].classList.contains("active")) {
+        btns[i].classList.add("active");
+      } else {
+        break;
+      }
+    } else {
+      btns[i].classList.remove("active");
+      const getGraph = document.querySelector(".graph");
+      getGraph.style.display = "none";
+    }
+  }
+};
+
+refreshBtn.addEventListener("click", () => {
+  location.reload();
+});
+
+exportBtn.addEventListener("click", () => {
+  const fileInput = document.getElementById("fileInput");
+  if (!fileInput.files[0]) {
+    alert("Please choose 1 file. No file chosen now!");
+  } else {
+    //handle logic algorithm
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const content = e.target.result;
+      const lines = content.split("\n");
+
+      switch (currentAlgorithm) {
+        case "dfs":
+          const verticesArr = lines[0].split(", ");
+          const edgesArr = lines[1].split(", ");
+          const startEnd = lines[2].split(" ");
+          const start = startEnd[0];
+          const end = startEnd[1];
+
+          for (let i = 0; i < verticesArr.length; i++) {
+            verticesArr[i] = verticesArr[i].replace(/\r$/, "");
+            graphDfs.addVertex(verticesArr[i]);
+          }
+
+          for (let i = 0; i < edgesArr.length; i++) {
+            edgesArr[i] = edgesArr[i].replace(/\r$/, "")
+            let singleVerticeInEdges = edgesArr[i].split("-");
+            graphDfs.addEdge(singleVerticeInEdges[0], singleVerticeInEdges[1]);
+          }
+
+          graphDfs.createTable(start, end);
+          graphDfs.drawTable();
+
+          const table = document.getElementById("resultTable");
+          const rows = Array.from(table.rows).map(row =>
+            Array.from(row.cells).map(cell => padRight(cell.textContent, 20)).join('')
+          );
+          const blob = new Blob([rows.join("\n"), `\n\n\nPath: ${graphDfs.findPath(start, end)}`], { type: "text/plain" });
+          const downloadLink = document.createElement("a");
+          if (window.URL && window.URL.createObjectURL) {
+            downloadLink.href = window.URL.createObjectURL(blob);
+            downloadLink.download = fileInput.files[0].name;
+          } else {
+            console.error(
+              "URL.createObjectURL is not supported in this environment."
+            );
+            return;
+          }
+
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+
+          break;
+        case "hillClimb":
+          break;
+        case "branchBound":
+          break;
+      }
+    };
+    reader.readAsText(fileInput.files[0]);
+  }
+});
+
+resultBtn.addEventListener("click", () => {
+  const fileInput = document.getElementById("fileInput");
+  if (!fileInput.files[0]) {
+    alert("Please choose 1 file. No file chosen now!");
+  } else {
+    if (!fileInput.files[0]) {
+      alert("Please choose 1 file. No file chosen now!");
+    } else {
+      //handle logic algorithm
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const content = e.target.result;
+        const lines = content.split("\n");
+
+        switch (currentAlgorithm) {
+          case "dfs":
+            const edgesArr = lines[1].split(", ");
+            graphDfs.drawGraph(edgesArr);
+            break;
+          case "hillClimb":
+            break;
+          case "branchBound":
+            break;
+        }
+      };
+      reader.readAsText(fileInput.files[0]);
+    }
+  }
+});
+
+// Helpers function
+function padRight(str, length) {
+  return (str + ' '.repeat(length)).slice(0, length);
+}
 
 // A, B, C, D, E, F, G, K, I
 // A-B, A-C, A-D, B-I, B-G, I-G, C-E, C-F, E-G, E-K, D-C, D-F, F-K

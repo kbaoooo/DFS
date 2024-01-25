@@ -13,13 +13,14 @@
         }
 
         html {
+            min-height: 100vh;
             font-family: 'Montserrat', sans-serif;
-            height: 100vh;
             background: linear-gradient(45deg, #2F1C53, #A46DFF, #F6D1FD);
         }
 
         .title {
             color: #f7f0f0;
+            text-transform: uppercase;
         }
 
         .main-content {
@@ -34,7 +35,7 @@
             border-radius: 20px;
             padding: 50px 60px;
             border-bottom-right-radius: 0;
-            box-shadow: rgba(0, 0, 0, 0.25) 0px 14px 28px, rgba(0, 0, 0, 0.22) 0px 10px 10px;
+            box-shadow: rgb(38, 57, 77) 0px 20px 30px -10px;
         }
 
         .add-logo {
@@ -138,7 +139,7 @@
 
         .algos {
             display: flex;
-            width: 563px;
+            width: 564px;
             justify-content: right;
         }
 
@@ -205,10 +206,6 @@
             box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
         }
 
-        #resultTable {
-            display: none;
-        }
-
         #path-title {
             margin-top: 20px;
         }
@@ -216,7 +213,40 @@
         #path {
             font-weight: 600;
         }
+
+        .link {
+            fill: none;
+            stroke: #999;
+            stroke-width: 1.5px;
+        }
+    
+        .node {
+            fill: #fff;
+            stroke: #999;
+            stroke-width: 1.5px;
+        }
+    
+        .label {
+            font-weight: 600;
+            font-size: 14px;
+            text-anchor: middle;
+            dominant-baseline: middle;
+        }
+
+        .graph {
+            margin-top: 30px;
+            display: none;
+        }
+
+        svg {
+            display: block;
+        }
+
+        .result-container {
+            display: none;
+        }
     </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
@@ -252,21 +282,21 @@
                 <div class="file-insert">
                     <label for="fileInput">
                         <span class="add-logo"><i class="fa-solid fa-upload"></i></span>
-                        <p class="file-text"> <span class="highlight-text">Drag</span> & <span
+                        <p class="file-text"><span class="highlight-text">Drag</span> & <span
                                 class="highlight-text">drop</span> any file here</p>
                     </label>
-                    <input type="file" id="fileInput" />
+                    <input type="file" id="fileInput" onchange="handleChangeFile()"/>
                 </div>
                 <div class="btns">
-                    <button class="btn" id="btn-result">Result</button><br><br>
-                    <button class="btn" id="btn-result">Export File</button><br><br>
+                    <button class="btn" id="btn-result">Show Graph</button><br><br>
+                    <button class="btn" id="btn-export">Export File</button><br><br>
                     <button class="btn" id="btn-refresh">Refresh</button><br><br>
                 </div>
             </div>
             <div class="algos">
-                <button class="algos-item active" data-math="dfs" onclick="buttonClicked(this)">dfs</button>
-                <button class="algos-item" data-math="hillClimb" onclick="buttonClicked(this)">hill climbing</button>
-                <button class="algos-item" data-math="branchBound" onclick="buttonClicked(this)">brach & bound</button>
+                <button class="algos-item active" data-title="dfs" data-math="dfs" onclick="buttonClicked(this)">dfs</button>
+                <button class="algos-item" data-title="Hill Climbing" data-math="hillClimb" onclick="buttonClicked(this)">hill climbing</button>
+                <button class="algos-item" data-title="Branch & Bound" data-math="branchBound" onclick="buttonClicked(this)">brach & bound</button>
             </div>
         </div>
 
@@ -274,23 +304,22 @@
             <table id="resultTable">
                 <thead>
                     <tr>
-                        <th>Expanded Node</th>
-                        <th>Adjacency List</th>
-                        <th>List Q</th>
-                        <th>List L</th>
+                        <td>Expanded Node</td>
+                        <td>Adjacency List</td>
+                        <td>List Q</td>
+                        <td>List L</td>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
-                    <!-- Dữ liệu sẽ được thêm vào đây -->
                 </tbody>
             </table>
-
-            <h2 id="path-title"></h2>
-            <p id="path"></p>
         </div>
+    </div>
+    <div class="graph">
+        <h1 class="title">Graph</h1>
+        <svg width="100%" height="400"></svg>
     </div>
 </body>
 <script src="dsf.js"></script>
-<script src="readfile.js"></script>
 
 </html>
