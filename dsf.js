@@ -198,6 +198,80 @@ class GraphDfs {
 }
 
 //graph for hill climb
+class GraphHillClimb {
+  constructor() {
+    this.nodes = new Map();
+  }
+
+  addNode(node) {
+    this.nodes.set(node.id, node);
+  }
+
+  addEdge(nodeA, nodeB, weight) {
+    if (!this.nodes.has(nodeA.id) || !this.nodes.has(nodeB.id)) {
+      console.error("Nodes not found in the graph");
+      return;
+    }
+
+    nodeA.neighbors.push({ node: nodeB, weight });
+    nodeB.neighbors.push({ node: nodeA, weight });
+  }
+}
+
+class NodeClimb {
+  constructor(id) {
+    this.id = id;
+    this.neighbors = [];
+  }
+}
+
+function hillClimbing(start, goal) {
+  console.log(start, goal);
+  // Define a function to calculate the heuristic (you can customize this based on your problem)
+  function heuristic(node) {
+    // For simplicity, using the absolute difference between node IDs as a heuristic
+    return Math.abs(node.id - goal.id);
+  }
+
+  // Initialize the priority queue with the starting node and its heuristic value
+  const priorityQueue = [
+    { heuristic: heuristic(start), node: start, path: [start.id] },
+  ];
+  const visited = new Set();
+
+  while (priorityQueue.length > 0) {
+    // Pop the node with the lowest heuristic value
+    priorityQueue.sort((a, b) => a.heuristic - b.heuristic);
+    const { node: currentNode, path } = priorityQueue.shift();
+
+    if (currentNode === goal) {
+      
+      console.log("Goal reached! Path:", path.join(" -> "));
+      return path.join(" -> ");
+    }
+
+    visited.add(currentNode);
+
+    // Explore neighbors
+    for (const { node: neighbor, weight } of currentNode.neighbors) {
+      if (!visited.has(neighbor)) {
+        // Calculate the heuristic for the neighbor
+        const neighborHeuristic = heuristic(neighbor);
+        // Add the neighbor to the priority queue with its heuristic value and updated path
+        priorityQueue.push({
+          heuristic: neighborHeuristic,
+          node: neighbor,
+          path: [...path, neighbor.id],
+        });
+      }
+    }
+  }
+
+  return "Goal not reached.";
+}
+
+// Example usage:
+const graphHillClimb = new GraphHillClimb();
 
 //graph for branch and bound
 
@@ -354,6 +428,29 @@ resultBtn.addEventListener("click", () => {
             graphDfs.drawGraph(edgesArr);
             break;
           case "hillClimb":
+            const vertices = lines[0].split(", ");
+            const edges = lines[1].split(", ");
+            const startEnd = lines[2].split(" ");
+            const start = new NodeClimb(startEnd[0])
+            const end = new NodeClimb(startEnd[1])
+            
+            for(let i = 0; i < vertices.length; i++) {
+              vertices[i] = vertices[i].replace(/\r$/, "")
+              const node = new NodeClimb(vertices[i])
+              graphHillClimb.addNode(node)
+            }
+
+            for(let i = 0; i < edges.length; i++) {
+              edges[i] = edges[i].replace(/\r$/, "")
+              const pairEdges = edges[i].split("-")
+              const nodeA = new NodeClimb(pairEdges[0])
+              const nodeB = new NodeClimb(pairEdges[1])
+              const weight = pairEdges[2]
+              console.log(nodeA, nodeB, weight);
+              graphHillClimb.addEdge(nodeA, nodeB, weight);
+            }
+
+            hillClimbing(start, end)
             break;
           case "branchBound":
             break;
@@ -381,4 +478,3 @@ function scrollToGraph() {
     );
   });
 }
-
