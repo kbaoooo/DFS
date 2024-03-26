@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>DFS Path Finder</title>
+    <title>Path Finder</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@100&family=Montserrat:wght@200;300;400;500;600;700&family=Poppins:wght@200;300;400;500;600&family=Roboto:wght@300;400;500;700;900&family=Space+Grotesk:wght@300&display=swap');
 
@@ -16,6 +16,27 @@
             min-height: 100vh;
             font-family: 'Montserrat', sans-serif;
             background: linear-gradient(45deg, #2F1C53, #A46DFF, #F6D1FD);
+        }
+
+        .edge {
+            stroke: gray;
+            stroke-width: 2;
+        }
+
+        .vertex {
+            fill: white;
+            width: 20px;
+            height: 20px;
+        }
+
+        .label {
+            font-size: 15px;
+        }
+
+        .weight {
+            font-size: 15px;
+            fill: black;
+            font-weight: 600;
         }
 
         .title {
@@ -219,13 +240,13 @@
             stroke: #999;
             stroke-width: 1.5px;
         }
-    
+
         .node {
             fill: #fff;
             stroke: #999;
             stroke-width: 1.5px;
         }
-    
+
         .label {
             font-weight: 600;
             font-size: 14px;
@@ -236,6 +257,7 @@
         .graph {
             margin-top: 30px;
             display: none;
+            padding-bottom: 30px;
         }
 
         svg {
@@ -253,30 +275,6 @@
 <body>
     <h1 class="title">DFS</h1>
     <div class="container">
-        <!-- <div class="form-container">
-            <form>
-                <div class="form-control">
-                    <label for="verticesInput">Nhập danh sách đỉnh (cách nhau bằng dấu phẩy):</label><br>
-                    <input placeholder="Example: A, B, C..." type="text" id="verticesInput"><br><br>
-                </div>
-                <div class="form-control">
-                    <label for="edgesInput">Nhập danh sách cạnh (ví dụ: A-B,B-C):</label><br>
-                    <input placeholder="Example: A-B, A-C..." type="text" id="edgesInput"><br><br>
-                </div>
-                <div class="form-control">
-                    <label for="startInput">Nhập đỉnh bắt đầu:</label><br>
-                    <input placeholder="Example: A" type="text" id="startInput"><br><br>
-                </div>
-                <div class="form-control">
-                    <label for="endInput">Nhập đỉnh kết thúc:</label><br>
-                    <input placeholder="Example: C" type="text" id="endInput"><br><br>
-                </div>
-                <div class="btns">
-                    <button class="btn" id="btn-result">Kết quả</button><br><br>
-                    <button class="btn" id="btn-refresh">Làm mới</button><br><br>
-                </div>
-            </form>
-        </div> -->
         <div class="main-content">
             <div class="form-insert">
                 <div class="file-insert">
@@ -285,7 +283,7 @@
                         <p class="file-text"><span class="highlight-text">Drag</span> & <span
                                 class="highlight-text">drop</span> any file here</p>
                     </label>
-                    <input type="file" id="fileInput" onchange="handleChangeFile()"/>
+                    <input type="file" id="fileInput" onchange="handleChangeFile()" />
                 </div>
                 <div class="btns">
                     <button class="btn" id="btn-result">Show Graph</button><br><br>
@@ -294,9 +292,12 @@
                 </div>
             </div>
             <div class="algos">
-                <button class="algos-item active" data-title="dfs" data-math="dfs" onclick="buttonClicked(this)">dfs</button>
-                <button class="algos-item" data-title="Hill Climbing" data-math="hillClimb" onclick="buttonClicked(this)">hill climbing</button>
-                <button class="algos-item" data-title="Branch & Bound" data-math="branchBound" onclick="buttonClicked(this)">brach & bound</button>
+                <button class="algos-item active" data-title="dfs" data-math="dfs"
+                    onclick="buttonClicked(this)">dfs</button>
+                <button class="algos-item" data-title="Hill Climbing" data-math="hillClimb"
+                    onclick="buttonClicked(this)">hill climbing</button>
+                <button class="algos-item" data-title="Branch & Bound" data-math="branchBound"
+                    onclick="buttonClicked(this)">brach & bound</button>
             </div>
         </div>
 
@@ -313,15 +314,42 @@
                 <tbody id="tableBody">
                 </tbody>
             </table>
+
+            <table id="HillClimbTable">
+                <thead>
+                    <tr>
+                        <td>Expanded Node</td>
+                        <td>Adjacency List</td>
+                        <td>List L1</td>
+                        <td>List L</td>
+                    </tr>
+                </thead>
+                <tbody id="HillClimbTableBody">
+                </tbody>
+            </table>
+
+            <table id="BBTable">
+                <thead>
+                    <tr>
+                        <td>Expanded Node</td>
+                        <td>Adjacency List</td>
+                        <td>List L1</td>
+                        <td>List L</td>
+                    </tr>
+                </thead>
+                <tbody id="BBTableBody">
+                </tbody>
+            </table>
         </div>
     </div>
     <div class="graph">
         <h1 class="title">Graph</h1>
-        <svg width="100%" height="400"></svg>
+        <svg width="100%" height="400" id="graph-container"></svg>
     </div>
     <div id="end"></div>
 </body>
-<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
-<script src="dsf.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.js" integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4="
+    crossorigin="anonymous"></script>
+<script src="script.js"></script>
 
 </html>
