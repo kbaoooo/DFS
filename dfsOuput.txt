@@ -1,0 +1,8 @@
+Expanded Node       Adjacency List      List Q              List L              
+A                   B, C, D             A, B, C, D          B, C,oa D             
+B                   I, G                B, I, G, A, C, D    I, G, C, D          
+I                   G                   I, G, B, A, C, D    G, C, D             
+G                   (Stop)              (Stop)              (Stop)              
+
+
+Path: A->B->I->G
