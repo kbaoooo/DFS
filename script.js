@@ -838,6 +838,3 @@ function scrollToGraph() {
     );
   });
 }
-
-
-
