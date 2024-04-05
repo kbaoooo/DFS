@@ -265,135 +265,114 @@ class GraphHillClimbing {
     return path;
   }
 
-  createTable(hillClimbResult) {
-    const tableContent = [];
-    hillClimbResult.forEach((step, index) => {
-      const row = {
-        ExpandedNode: step.node,
-        Heuristic: this.heuristics.get(step.node),
-        AdjacencyList: "",
-        VisitedNodes: step.isGoal ? "(Stop)" : "",
-      };
-      // Check if the node has associated edges before creating the adjacency list
-      if (this.adjList.has(step.node)) {
-        row.AdjacencyList = this.adjList.get(step.node).map(edge => {
-          const target = edge === step.node ? "" : edge;
-          return `${target}-${this.heuristics.get(edge)}`;
-        }).join(", ");
-      }
-      tableContent.push(row);
+   // Function to sort adjacency list by weight
+  sortAdjacencyList(adjacencyList, vertexWeights) {
+    return adjacencyList.sort((a, b) => vertexWeights[a] - vertexWeights[b]);
+  }
+
+  // Function to calculate the maximum width for each column
+  calculateColumnWidths(rows) {
+    const columnWidths = Array.from({ length: rows[0].children.length }, () => 0);
+
+    rows.forEach(row => {
+      Array.from(row.children).forEach((cell, index) => {
+        columnWidths[index] = Math.max(columnWidths[index], cell.innerText.length);
+      });
     });
-    return tableContent;
+
+    return columnWidths;
   }
-  
-  exportTableToFile(filename) {
-    const table = document.getElementById("HillClimbTable");
-    if (!table) {
-        console.error("Table not found.");
-        return;
+
+  // to export table data to TXT file
+  exportTableToTXT(filename) {
+    const rows = Array.from(document.querySelectorAll('#HillClimbTable tbody tr'));
+    const txtData = [];
+
+    // Push column names
+    txtData.push('Expanded Node\tAdjacency List\tList L1\t\tList L');
+
+    // Loop through rows
+    rows.forEach(row => {
+      const rowData = [];
+      const expandedNode = row.children[0].innerText;
+      const listLCell = row.children[3];
+      const listLNodes = listLCell.innerText.split(',');
+
+      // Filter out nodes present in the Expanded Node column
+      const filteredListLNodes = listLNodes.filter(node => !expandedNode.includes(node.split(/[0-9]/)[0]));
+
+      // Reconstruct the List L column
+      const reconstructedListL = filteredListLNodes.join(',');
+
+      // Add extra spaces to make columns straighter
+      rowData.push(row.children[0].innerText.padEnd(20, ' '));
+      rowData.push(row.children[1].innerText.padEnd(20, ' '));
+      rowData.push(row.children[2].innerText.padEnd(20, ' '));
+      rowData.push(reconstructedListL.padEnd(20, ' '));
+
+      txtData.push(rowData.join('\t'));
+    });
+
+    // Create TXT content
+    const txtContent = txtData.join('\n');
+
+    // Create a download link and trigger click event
+    const encodedUri = encodeURI('data:text/plain;charset=utf-8,' + txtContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link); // Required for Firefox
+    link.click();
+  }
+
+  // Hill climbing algorithm
+  drawTable(initialState, goalState, vertexWeights ,edges) {
+    let currentNode = initialState;
+    const tableBody = document.getElementById('HillClimbTableBody');
+    let prevListL = ''; // Track previous List L
+    const visited = new Set(); // Track visited nodes
+    let listExpandedNodes = [];
+
+    while (currentNode !== goalState) {
+      if(currentNode !== initialState) {
+        listExpandedNodes.push(`${currentNode}${vertexWeights[currentNode]}`);
+      }
+
+      let listExpandedNodesString = listExpandedNodes.join(',')
+      visited.add(currentNode); // Mark current node as visited
+
+      const adjacencyList = edges.filter(edge => edge.source === currentNode && !visited.has(edge.target));
+      const sortedAdjacencyList = this.sortAdjacencyList(adjacencyList.map(edge => edge.target), vertexWeights);
+
+      const newRow = document.createElement('tr');
+      const listL = sortedAdjacencyList
+        .filter(vertex => !prevListL.includes(vertex)) // Remove nodes already in prevListL
+        .map(vertex => vertex + vertexWeights[vertex])
+        .join(',');
+
+      newRow.innerHTML = `
+          <td>${currentNode}${vertexWeights[currentNode]}</td>
+          <td>${adjacencyList.map(edge => edge.target + vertexWeights[edge.target]).join(',')}</td>
+          <td>${sortedAdjacencyList.map(vertex => vertex + vertexWeights[vertex]).join(',')}</td>
+          <td>${prevListL ? (listL + ',' + prevListL).replace(listExpandedNodesString, '') : listL}</td>
+      `;
+      tableBody.appendChild(newRow);
+
+      prevListL = prevListL ? (prevListL + ',' + listL) : listL; // Merge with previous List L
+      currentNode = sortedAdjacencyList[0];
     }
-  
-    let content = '';
-    const rows = Array.from(table.rows).map((row) =>
-        Array.from(row.cells).map((cell) => cell.textContent.trim())
-    );
-  
-    // Duyệt qua các hàng và ghép các giá trị cột thành một chuỗi, phân tách bằng khoảng trắng
-    content = rows.map(row => row.join("     ")).join("\n");
-    content += `\n\nPath: ${this.path}`; // Sử dụng giá trị của biến path
-  
-    // Tạo đối tượng Blob từ nội dung của bảng
-    const blob = new Blob([content], { type: "text/plain" });
-  
-    // Tạo đường dẫn URL cho Blob để tạo liên kết tải xuống
-    const downloadLink = document.createElement("a");
-    if (window.URL && window.URL.createObjectURL) {
-        downloadLink.href = window.URL.createObjectURL(blob);
-        downloadLink.download = filename;
-    } else {
-        console.error("URL.createObjectURL is not supported in this environment.");
-        return;
-    }
-  
-    // Tạo và kích hoạt liên kết để tải xuống file
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+
+    // Add the goal state row
+    const goalRow = document.createElement('tr');
+    goalRow.innerHTML = `
+      <td>${goalState}${vertexWeights[goalState]}</td>
+      <td>Stop</td>
+      <td></td>
+      <td></td> 
+  `;
+    tableBody.appendChild(goalRow);
   }
 
-  drawGraph(vertices, edges) {
-  // Create an SVG container
-  const svg = d3.select('#graph-container');
-
-  // Set width and height of SVG container
-  const width = 1300;
-  const height = 600;
-  svg.attr('width', width)
-      .attr('height', height);
-
-  // Create a group for the graph elements
-  const graph = svg.append('g');
-
-  // Create links
-  const links = graph.selectAll('.link')
-      .data(edges)
-      .enter().append('line')
-      .attr('class', 'link');
-
-  // Create nodes
-  const nodeElements = graph.selectAll('.node')
-      .data(vertices)
-      .enter().append('circle')
-      .attr('class', 'node')
-      .attr('r', d => 13); // Increased node size
-
-  // Create labels for nodes
-  const labels = graph.selectAll('.label')
-      .data(vertices)
-      .enter().append('text')
-      .attr('class', 'label')
-      .text(d => d.id);
-
-  // Create weight labels for nodes
-  const weightLabels = graph.selectAll('.weight')
-      .data(vertices)
-      .enter().append('text')
-      .attr('class', 'weight')
-      .text(d => d.weight);
-
-  // Initialize the D3 force-directed graph simulation
-  const simulation = d3.forceSimulation(vertices)
-      .force('link', d3.forceLink(edges).id(d => d.id).strength(0.05)) // Decreased link strength
-      .force('charge', d3.forceManyBody())
-      .force('center', d3.forceCenter(width / 2, height / 2));
-
-  // Update node and link positions during simulation
-  simulation.on('tick', () => {
-      links
-          .attr('x1', d => d.source.x)
-          .attr('y1', d => d.source.y)
-          .attr('x2', d => d.target.x)
-          .attr('y2', d => d.target.y);
-
-      nodeElements
-          .attr('cx', d => d.x)
-          .attr('cy', d => d.y);
-
-      labels
-          .attr('x', d => d.x)
-          .attr('y', d => d.y - 8); // Adjust label position above node
-
-      weightLabels
-          .attr('x', d => d.x)
-          .attr('y', d => d.y + 8); // Adjust weight label position below node
-  });
-
-  // Apply a scale transform to make the graph larger
-  svg.attr('transform', 'scale(1.5)');
-
-  let getGraph = document.querySelector(".graph");
-  getGraph.style.display = "block";
-  }
 }
 
 // graph for branch bound
@@ -715,23 +694,29 @@ exportBtn.addEventListener("click", () => {
             const start = startEnd[0];
             const end = startEnd[1];
 
+            const formattedVertices = {};
+            const formattedEdges = [];
+
             for (let i = 0; i < verticeHeuristic.length; i++) {
               verticeHeuristic[i] = verticeHeuristic[i].replace(/\r$/, "");
               const [vertice, heuristic] = verticeHeuristic[i].split("-");
               graphHillClimb.addVertex(vertice, heuristic);
+              formattedVertices[vertice] = heuristic
             }
 
             for (let i = 0; i < edges.length; i++) {
               edges[i] = edges[i].replace(/\r$/, "");
               const [source, target] = edges[i].split("-");
               graphHillClimb.addEdge(source, target);
+              formattedEdges.push({source, target})
             }
-        
+            console.log(formattedVertices, formattedEdges);
             // Chạy thuật toán Hill Climbing
             const hillClimbResult = graphHillClimb.hillClimbing(start, end);
-            // Tạo bảng và xuất kết quả ra file output
-            const tableContent = graphHillClimb.createTable(hillClimbResult);
-            graphHillClimb.exportTableToFile("hill_climbing_table.txt", tableContent);
+            console.log(hillClimbResult);
+            graphHillClimb.drawTable(start, end, formattedVertices, formattedEdges)
+            graphHillClimb.exportTableToTXT('hillclimb-output.txt')
+            
           break;
         }
         case "branchBound": {
