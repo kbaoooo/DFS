@@ -224,59 +224,24 @@ class GraphHillClimbing {
     this.adjList.get(source).push(target);
   }
 
-  // Hill Climbing algorithm
-  hillClimbing(start, goal) {
-    let current = start;
-    const path = [{ node: start, heuristic: 0, isGoal: false }];
-    const visited = new Set(); // To track visited nodes
-
-    while (current !== goal) {
-      let nextNode = null;
-      let minHeuristic = Infinity;
-
-      // Mark the current node as visited
-      visited.add(current);
-
-      // Find all neighboring nodes of the current node
-      const neighbors = this.adjList.get(current) || [];
-
-      // Traverse through the neighboring nodes and choose the node with the smallest heuristic value
-      for (const neighbor of neighbors) {
-        if (!visited.has(neighbor)) {
-          const nodeHeuristic = this.heuristics.get(neighbor) || 0; // Get heuristic value associated with the node
-          if (nodeHeuristic < minHeuristic) {
-            minHeuristic = nodeHeuristic;
-            nextNode = neighbor;
-          }
-        }
-      }
-
-      // If no next node is found, break the algorithm
-      if (!nextNode) break;
-
-      // Add the next node to the path and update the current node
-      current = nextNode;
-      path.push({ node: current, heuristic: minHeuristic, isGoal: current === goal });
-    }
-
-    // Assign the path to the path attribute of the class
-    this.path = path.map(step => step.node).join("-> ");
-
-    return path;
-  }
-
-   // Function to sort adjacency list by weight
+  // Function to sort adjacency list by weight
   sortAdjacencyList(adjacencyList, vertexWeights) {
     return adjacencyList.sort((a, b) => vertexWeights[a] - vertexWeights[b]);
   }
 
   // Function to calculate the maximum width for each column
   calculateColumnWidths(rows) {
-    const columnWidths = Array.from({ length: rows[0].children.length }, () => 0);
+    const columnWidths = Array.from(
+      { length: rows[0].children.length },
+      () => 0
+    );
 
-    rows.forEach(row => {
+    rows.forEach((row) => {
       Array.from(row.children).forEach((cell, index) => {
-        columnWidths[index] = Math.max(columnWidths[index], cell.innerText.length);
+        columnWidths[index] = Math.max(
+          columnWidths[index],
+          cell.innerText.length
+        );
       });
     });
 
@@ -285,85 +250,111 @@ class GraphHillClimbing {
 
   // to export table data to TXT file
   exportTableToTXT(filename) {
-    const rows = Array.from(document.querySelectorAll('#HillClimbTable tbody tr'));
+    const rows = Array.from(
+      document.querySelectorAll("#HillClimbTable tbody tr")
+    );
     const txtData = [];
+    const path = []
 
     // Push column names
-    txtData.push('Expanded Node\tAdjacency List\tList L1\t\tList L');
+    txtData.push("Expanded Node\t\tAdjacency List\t\tList L1\t\t\tList L");
 
     // Loop through rows
-    rows.forEach(row => {
+    rows.forEach((row) => {
       const rowData = [];
       const expandedNode = row.children[0].innerText;
       const listLCell = row.children[3];
-      const listLNodes = listLCell.innerText.split(',');
+      const listLNodes = listLCell.innerText.split(",");
 
+      path.push(expandedNode);
       // Filter out nodes present in the Expanded Node column
-      const filteredListLNodes = listLNodes.filter(node => !expandedNode.includes(node.split(/[0-9]/)[0]));
+      const filteredListLNodes = listLNodes.filter(
+        (node) => !expandedNode.includes(node.split(/[0-9]/)[0])
+      );
 
       // Reconstruct the List L column
-      const reconstructedListL = filteredListLNodes.join(',');
+      const reconstructedListL = filteredListLNodes.join(",");
 
       // Add extra spaces to make columns straighter
-      rowData.push(row.children[0].innerText.padEnd(20, ' '));
-      rowData.push(row.children[1].innerText.padEnd(20, ' '));
-      rowData.push(row.children[2].innerText.padEnd(20, ' '));
-      rowData.push(reconstructedListL.padEnd(20, ' '));
+      rowData.push(row.children[0].innerText.padEnd(40, " "));
+      rowData.push(row.children[1].innerText.padEnd(40, " "));
+      rowData.push(row.children[2].innerText.padEnd(40, " "));
+      rowData.push(reconstructedListL.padEnd(40, " "));
 
-      txtData.push(rowData.join('\t'));
+      txtData.push(rowData.join("\t"));
     });
 
+    txtData.push("\n" + 'Path: ' + path.join('->'));
+
     // Create TXT content
-    const txtContent = txtData.join('\n');
+    const txtContent = txtData.join("\n");
 
     // Create a download link and trigger click event
-    const encodedUri = encodeURI('data:text/plain;charset=utf-8,' + txtContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', filename);
+    const encodedUri = encodeURI("data:text/plain;charset=utf-8," + txtContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
     document.body.appendChild(link); // Required for Firefox
     link.click();
   }
 
   // Hill climbing algorithm
-  drawTable(initialState, goalState, vertexWeights ,edges) {
+  drawTable(initialState, goalState, vertexWeights, edges) {
     let currentNode = initialState;
-    const tableBody = document.getElementById('HillClimbTableBody');
-    let prevListL = ''; // Track previous List L
+    const tableBody = document.getElementById("HillClimbTableBody");
+    let prevListL = ""; // Track previous List L
     const visited = new Set(); // Track visited nodes
     let listExpandedNodes = [];
 
     while (currentNode !== goalState) {
-      if(currentNode !== initialState) {
+      if (currentNode !== initialState) {
         listExpandedNodes.push(`${currentNode}${vertexWeights[currentNode]}`);
       }
 
-      let listExpandedNodesString = listExpandedNodes.join(',')
       visited.add(currentNode); // Mark current node as visited
 
-      const adjacencyList = edges.filter(edge => edge.source === currentNode && !visited.has(edge.target));
-      const sortedAdjacencyList = this.sortAdjacencyList(adjacencyList.map(edge => edge.target), vertexWeights);
+      const adjacencyList = edges.filter(
+        (edge) => edge.source === currentNode && !visited.has(edge.target)
+      );
 
-      const newRow = document.createElement('tr');
+      const sortedAdjacencyList = this.sortAdjacencyList(
+        adjacencyList.map((edge) => edge.target),
+        vertexWeights
+      );
+
+      const newRow = document.createElement("tr");
+
       const listL = sortedAdjacencyList
-        .filter(vertex => !prevListL.includes(vertex)) // Remove nodes already in prevListL
-        .map(vertex => vertex + vertexWeights[vertex])
-        .join(',');
+        .filter((vertex) => !prevListL.includes(vertex)) // Remove nodes already in prevListL
+        .map((vertex) => vertex + vertexWeights[vertex])
+        .join(",");
+
+      let currentListL = prevListL ? listL + "," + prevListL : listL;
+
+      let currentListLArr = currentListL.split(",");
+      // loc ra list L
+      currentListLArr = currentListLArr.filter(
+        (item) => !listExpandedNodes.includes(item)
+      );
+      currentListL = currentListLArr.join(",");
 
       newRow.innerHTML = `
           <td>${currentNode}${vertexWeights[currentNode]}</td>
-          <td>${adjacencyList.map(edge => edge.target + vertexWeights[edge.target]).join(',')}</td>
-          <td>${sortedAdjacencyList.map(vertex => vertex + vertexWeights[vertex]).join(',')}</td>
-          <td>${prevListL ? (listL + ',' + prevListL).replace(listExpandedNodesString, '') : listL}</td>
+          <td>${adjacencyList
+            .map((edge) => edge.target + vertexWeights[edge.target])
+            .join(",")}</td>
+          <td>${sortedAdjacencyList
+            .map((vertex) => vertex + vertexWeights[vertex])
+            .join(",")}</td>
+          <td>${currentListL}</td>
       `;
       tableBody.appendChild(newRow);
-
-      prevListL = prevListL ? (prevListL + ',' + listL) : listL; // Merge with previous List L
+      prevListL = prevListL ? listL + "," + prevListL : listL; // Merge with previous List L
       currentNode = sortedAdjacencyList[0];
     }
 
     // Add the goal state row
-    const goalRow = document.createElement('tr');
+    const goalRow = document.createElement("tr");
     goalRow.innerHTML = `
       <td>${goalState}${vertexWeights[goalState]}</td>
       <td>Stop</td>
@@ -373,6 +364,87 @@ class GraphHillClimbing {
     tableBody.appendChild(goalRow);
   }
 
+  drawGraph(vertices, edges) {
+    // Create an SVG container
+    const svg = d3.select("#graph-container");
+
+    // Set width and height of SVG container
+    const width = 1300;
+    const height = 600;
+    svg.attr("width", width).attr("height", height);
+
+    // Create a group for the graph elements
+    const graph = svg.append("g");
+
+    // Create links
+    const links = graph
+      .selectAll(".link")
+      .data(edges)
+      .enter()
+      .append("line")
+      .attr("class", "link");
+
+    // Create nodes
+    const nodeElements = graph
+      .selectAll(".node")
+      .data(vertices)
+      .enter()
+      .append("circle")
+      .attr("class", "node")
+      .attr("r", (d) => 13); // Increased node size
+
+    // Create labels for nodes
+    const labels = graph
+      .selectAll(".label")
+      .data(vertices)
+      .enter()
+      .append("text")
+      .attr("class", "label")
+      .text((d) => d.id);
+
+    // Create weight labels for nodes
+    const weightLabels = graph
+      .selectAll(".weight")
+      .data(vertices)
+      .enter()
+      .append("text")
+      .attr("class", "weight")
+      .text((d) => d.weight);
+
+    // Initialize the D3 force-directed graph simulation
+    const simulation = d3
+      .forceSimulation(vertices)
+      .force(
+        "link",
+        d3
+          .forceLink(edges)
+          .id((d) => d.id)
+          .strength(0.05)
+      ) // Decreased link strength
+      .force("charge", d3.forceManyBody())
+      .force("center", d3.forceCenter(width / 2, height / 2));
+
+    // Update node and link positions during simulation
+    simulation.on("tick", () => {
+      links
+        .attr("x1", (d) => d.source.x)
+        .attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x)
+        .attr("y2", (d) => d.target.y);
+
+      nodeElements.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
+
+      labels.attr("x", (d) => d.x).attr("y", (d) => d.y - 8); // Adjust label position above node
+
+      weightLabels.attr("x", (d) => d.x).attr("y", (d) => d.y + 8); // Adjust weight label position below node
+    });
+
+    // Apply a scale transform to make the graph larger
+    svg.attr("transform", "scale(1.5)");
+
+    let getGraph = document.querySelector(".graph");
+    getGraph.style.display = "block";
+  }
 }
 
 // graph for branch bound
@@ -383,11 +455,18 @@ class GraphBranchAndBound {
   }
 
   addVertices(vertices) {
-    this.nodes = vertices.map(vertex => ({ id: vertex.id, weight: vertex.weight }));
+    this.nodes = vertices.map((vertex) => ({
+      id: vertex.id,
+      weight: vertex.weight,
+    }));
   }
 
   addEdges(edges) {
-    this.edges = edges.map(edge => ({ source: edge.source, target: edge.target, weight: edge.weight }));
+    this.edges = edges.map((edge) => ({
+      source: edge.source,
+      target: edge.target,
+      weight: edge.weight,
+    }));
   }
 
   findShortestPath(init, goal) {
@@ -407,14 +486,16 @@ class GraphBranchAndBound {
       if (!visited.has(current)) {
         visited.add(current);
 
-        this.edges.filter(edge => edge.source === current).forEach(edge => {
-          const neighbor = edge.target;
-          if (!visited.has(neighbor)) {
-            const newPath = [...path, neighbor];
-            const newCost = cost + edge.weight;
-            queue.push({ path: newPath, cost: newCost });
-          }
-        });
+        this.edges
+          .filter((edge) => edge.source === current)
+          .forEach((edge) => {
+            const neighbor = edge.target;
+            if (!visited.has(neighbor)) {
+              const newPath = [...path, neighbor];
+              const newCost = cost + edge.weight;
+              queue.push({ path: newPath, cost: newCost });
+            }
+          });
       }
     }
 
@@ -424,18 +505,20 @@ class GraphBranchAndBound {
   exportResultToFile(init, goal) {
     const result = this.findShortestPath(init, goal);
     if (result) {
-      const content = `Shortest Path: ${result.path.join(' -> ')}\nCost: ${result.cost}`;
-      const filename = 'shortest_path_result.txt';
+      const content = `Shortest Path: ${result.path.join(" -> ")}\nCost: ${
+        result.cost
+      }`;
+      const filename = "shortest_path_result.txt";
       this.exportToFile(content, filename);
     } else {
-      alert('No path found from ' + init + ' to ' + goal);
+      alert("No path found from " + init + " to " + goal);
     }
   }
 
   exportToFile(content, filename) {
-    const blob = new Blob([content], { type: 'text/plain' });
+    const blob = new Blob([content], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
@@ -452,104 +535,118 @@ class GraphBranchAndBound {
     const height = 600;
 
     // Create the SVG container
-    const svg = d3.select("#graph-container")
-        .attr("width", width)
-        .attr("height", height);
+    const svg = d3
+      .select("#graph-container")
+      .attr("width", width)
+      .attr("height", height);
 
     // Create a force simulation
-    const simulation = d3.forceSimulation()
-        .nodes(vertices)
-        .force("link", d3.forceLink(edges).id(d => d.id).distance(100))
-        .force("charge", d3.forceManyBody().strength(-300))
-        .force("center", d3.forceCenter(width / 2, height / 2));
+    const simulation = d3
+      .forceSimulation()
+      .nodes(vertices)
+      .force(
+        "link",
+        d3
+          .forceLink(edges)
+          .id((d) => d.id)
+          .distance(100)
+      )
+      .force("charge", d3.forceManyBody().strength(-300))
+      .force("center", d3.forceCenter(width / 2, height / 2));
 
     // Create edges
-    const edge = svg.selectAll(".edge")
-        .data(edges)
-        .enter().append("line")
-        .attr("class", "edge");
+    const edge = svg
+      .selectAll(".edge")
+      .data(edges)
+      .enter()
+      .append("line")
+      .attr("class", "edge");
 
     // Create vertices
-    const vertex = svg.selectAll(".vertex")
-        .data(simulation.nodes())
-        .enter().append("circle")
-        .attr("class", "vertex")
-        .attr("r", 25) // Adjust the scaling factor as needed
+    const vertex = svg
+      .selectAll(".vertex")
+      .data(simulation.nodes())
+      .enter()
+      .append("circle")
+      .attr("class", "vertex")
+      .attr("r", 25); // Adjust the scaling factor as needed
 
     // Add labels for vertices
-    const label = svg.selectAll(".label")
-        .data(simulation.nodes())
-        .enter().append("text")
-        .attr("class", "label")
-        .attr("dy", ".35em")
-        .text(d => d.id);
+    const label = svg
+      .selectAll(".label")
+      .data(simulation.nodes())
+      .enter()
+      .append("text")
+      .attr("class", "label")
+      .attr("dy", ".35em")
+      .text((d) => d.id);
 
     // Add weights for edges
-    const edgeWeight = svg.selectAll(".edge-weight")
-        .data(edges)
-        .enter().append("text")
-        .attr("class", "weight")
-        .attr("dy", "-1em") // Adjust the vertical position as needed
-        .text(d => d.weight);
+    const edgeWeight = svg
+      .selectAll(".edge-weight")
+      .data(edges)
+      .enter()
+      .append("text")
+      .attr("class", "weight")
+      .attr("dy", "-1em") // Adjust the vertical position as needed
+      .text((d) => d.weight);
 
     // Add weights for vertices
-    const vertexWeight = svg.selectAll(".vertex-weight")
-        .data(simulation.nodes())
-        .enter().append("text")
-        .attr("class", "weight")
-        .attr("dy", "1.5em") // Adjust the vertical position as needed
-        .text(d => d.weight);
+    const vertexWeight = svg
+      .selectAll(".vertex-weight")
+      .data(simulation.nodes())
+      .enter()
+      .append("text")
+      .attr("class", "weight")
+      .attr("dy", "1.5em") // Adjust the vertical position as needed
+      .text((d) => d.weight);
 
     // Add drag behavior to vertices
-    vertex.call(d3.drag()
+    vertex.call(
+      d3
+        .drag()
         .on("start", dragstarted)
         .on("drag", dragged)
-        .on("end", dragended));
+        .on("end", dragended)
+    );
 
     // Update the position of elements in each tick of the simulation
     simulation.on("tick", () => {
       edge
-          .attr("x1", d => d.source.x)
-          .attr("y1", d => d.source.y)
-          .attr("x2", d => d.target.x)
-          .attr("y2", d => d.target.y);
+        .attr("x1", (d) => d.source.x)
+        .attr("y1", (d) => d.source.y)
+        .attr("x2", (d) => d.target.x)
+        .attr("y2", (d) => d.target.y);
 
-      vertex
-          .attr("cx", d => d.x)
-          .attr("cy", d => d.y);
+      vertex.attr("cx", (d) => d.x).attr("cy", (d) => d.y);
 
-      label
-          .attr("x", d => d.x)
-          .attr("y", d => d.y);
+      label.attr("x", (d) => d.x).attr("y", (d) => d.y);
 
       edgeWeight
-          .attr("x", d => (d.source.x + d.target.x) / 2)
-          .attr("y", d => (d.source.y + d.target.y) / 2);
+        .attr("x", (d) => (d.source.x + d.target.x) / 2)
+        .attr("y", (d) => (d.source.y + d.target.y) / 2);
 
-      vertexWeight
-          .attr("x", d => d.x)
-          .attr("y", d => d.y);
-      });
+      vertexWeight.attr("x", (d) => d.x).attr("y", (d) => d.y);
+    });
 
     // Functions for drag behavior
     function dragstarted(event, d) {
-        if (!event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
+      if (!event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
     }
 
     function dragged(event, d) {
-        d.fx = event.x;
-        d.fy = event.y;
+      d.fx = event.x;
+      d.fy = event.y;
     }
 
     function dragended(event, d) {
-        if (!event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
+      if (!event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
     }
 
-      
     let getGraph = document.querySelector(".graph");
     getGraph.style.display = "block";
   }
@@ -593,9 +690,9 @@ const handleRemoveFile = () => {
 const buttonClicked = (btn) => {
   const btns = document.querySelectorAll(".algos-item");
   const title = document.querySelector(".title");
-  const graph = document.getElementById('graph-container')
+  const graph = document.getElementById("graph-container");
 
-  graph.innerHTML = '';
+  graph.innerHTML = "";
 
   for (let i = 0; i < btns.length; i++) {
     if (currentAlgorithm !== btn.dataset.math) {
@@ -638,7 +735,6 @@ exportBtn.addEventListener("click", () => {
 
       switch (currentAlgorithm) {
         case "dfs": {
-
           const verticesArr = lines[0].split(", ");
           const edgesArr = lines[1].split(", ");
           const startEnd = lines[2].split(" ");
@@ -683,40 +779,44 @@ exportBtn.addEventListener("click", () => {
           document.body.appendChild(downloadLink);
           downloadLink.click();
           document.body.removeChild(downloadLink);
-          
+
           break;
         }
-        case "hillClimb": {        
-            // Tạo đồ thị và các giá trị heuristic từ dữ liệu đầu vào
-            const verticeHeuristic = lines[0].split(", ");
-            const edges = lines[1].split(", ");
-            const startEnd = lines[2].split(", ");
-            const start = startEnd[0];
-            const end = startEnd[1];
+        case "hillClimb": {
+          // Tạo đồ thị và các giá trị heuristic từ dữ liệu đầu vào
+          const verticeHeuristic = lines[0].split(", ");
+          const edges = lines[1].split(", ");
+          const startEnd = lines[2].split(", ");
+          const start = startEnd[0];
+          const end = startEnd[1];
 
-            const formattedVertices = {};
-            const formattedEdges = [];
+          const formattedVertices = {};
+          const formattedEdges = [];
 
-            for (let i = 0; i < verticeHeuristic.length; i++) {
-              verticeHeuristic[i] = verticeHeuristic[i].replace(/\r$/, "");
-              const [vertice, heuristic] = verticeHeuristic[i].split("-");
-              graphHillClimb.addVertex(vertice, heuristic);
-              formattedVertices[vertice] = heuristic
-            }
+          for (let i = 0; i < verticeHeuristic.length; i++) {
+            verticeHeuristic[i] = verticeHeuristic[i].replace(/\r$/, "");
+            const [vertice, heuristic] = verticeHeuristic[i].split("-");
+            graphHillClimb.addVertex(vertice, heuristic);
+            formattedVertices[vertice] = heuristic;
+          }
 
-            for (let i = 0; i < edges.length; i++) {
-              edges[i] = edges[i].replace(/\r$/, "");
-              const [source, target] = edges[i].split("-");
-              graphHillClimb.addEdge(source, target);
-              formattedEdges.push({source, target})
-            }
-            console.log(formattedVertices, formattedEdges);
-            // Chạy thuật toán Hill Climbing
-            const hillClimbResult = graphHillClimb.hillClimbing(start, end);
-            console.log(hillClimbResult);
-            graphHillClimb.drawTable(start, end, formattedVertices, formattedEdges)
-            graphHillClimb.exportTableToTXT('hillclimb-output.txt')
-            
+          for (let i = 0; i < edges.length; i++) {
+            edges[i] = edges[i].replace(/\r$/, "");
+            const [source, target] = edges[i].split("-");
+            graphHillClimb.addEdge(source, target);
+            formattedEdges.push({ source, target });
+          }
+
+          // draw table
+          graphHillClimb.drawTable(
+            start,
+            end,
+            formattedVertices,
+            formattedEdges
+          );
+
+          graphHillClimb.exportTableToTXT("hillclimb-output.txt");
+
           break;
         }
         case "branchBound": {
@@ -728,19 +828,26 @@ exportBtn.addEventListener("click", () => {
           let formattedVertices = [];
           let formattedEdges = [];
 
-          for(let i = 0; i < verticesArr.length; i++) {
-            verticesArr[i] = verticesArr[i].replace(/\r$/, "")
+          for (let i = 0; i < verticesArr.length; i++) {
+            verticesArr[i] = verticesArr[i].replace(/\r$/, "");
             const verticeWeight = verticesArr[i].split("-");
-            formattedVertices.push({id: verticeWeight[0], weight: +verticeWeight[1]})
+            formattedVertices.push({
+              id: verticeWeight[0],
+              weight: +verticeWeight[1],
+            });
           }
-          for(let i = 0; i < edgesArr.length; i++) {
-            edgesArr[i] = edgesArr[i].replace(/\r$/, "")
+          for (let i = 0; i < edgesArr.length; i++) {
+            edgesArr[i] = edgesArr[i].replace(/\r$/, "");
             const edgesWeight = edgesArr[i].split("-");
-            formattedEdges.push({source: edgesWeight[0], target: edgesWeight[1], weight: +edgesWeight[2]})
-          } 
-          graphBranchBound.addVertices(formattedVertices)
-          graphBranchBound.addEdges(formattedEdges)
-          graphBranchBound.exportResultToFile(start, end)
+            formattedEdges.push({
+              source: edgesWeight[0],
+              target: edgesWeight[1],
+              weight: +edgesWeight[2],
+            });
+          }
+          graphBranchBound.addVertices(formattedVertices);
+          graphBranchBound.addEdges(formattedEdges);
+          graphBranchBound.exportResultToFile(start, end);
 
           break;
         }
@@ -776,22 +883,25 @@ resultBtn.addEventListener("click", () => {
             const edges = lines[1].split(", ");
             let formatEdges = [];
             let formatVertices = [];
-            
-            for(let i = 0; i < vertices.length; i++) {
-              vertices[i] = vertices[i].replace(/\r$/, "")
+
+            for (let i = 0; i < vertices.length; i++) {
+              vertices[i] = vertices[i].replace(/\r$/, "");
               const verticeWeight = vertices[i].split("-");
-              formatVertices.push({id: verticeWeight[0], weight: verticeWeight[1]});
-              graphHillClimb.addVertex(verticeWeight[0], verticeWeight[1])
+              formatVertices.push({
+                id: verticeWeight[0],
+                weight: verticeWeight[1],
+              });
+              graphHillClimb.addVertex(verticeWeight[0], verticeWeight[1]);
             }
 
-            for(let i = 0; i < edges.length; i++) {
-              edges[i] = edges[i].replace(/\r$/, "")
+            for (let i = 0; i < edges.length; i++) {
+              edges[i] = edges[i].replace(/\r$/, "");
               const edgePair = edges[i].split("-");
-              formatEdges.push({source: edgePair[0], target: edgePair[1]});
-              graphHillClimb.addEdge(edgePair[0], edgePair[1])
+              formatEdges.push({ source: edgePair[0], target: edgePair[1] });
+              graphHillClimb.addEdge(edgePair[0], edgePair[1]);
             }
 
-            graphHillClimb.drawGraph(formatVertices, formatEdges)
+            graphHillClimb.drawGraph(formatVertices, formatEdges);
             break;
           }
           case "branchBound": {
@@ -800,15 +910,22 @@ resultBtn.addEventListener("click", () => {
             let formattedVertices = [];
             let formattedEdges = [];
 
-            for(let i = 0; i < verticesArr.length; i++) {
-              verticesArr[i] = verticesArr[i].replace(/\r$/, "")
+            for (let i = 0; i < verticesArr.length; i++) {
+              verticesArr[i] = verticesArr[i].replace(/\r$/, "");
               const verticeWeight = verticesArr[i].split("-");
-              formattedVertices.push({id: verticeWeight[0], weight: +verticeWeight[1]})
+              formattedVertices.push({
+                id: verticeWeight[0],
+                weight: +verticeWeight[1],
+              });
             }
-            for(let i = 0; i < edgesArr.length; i++) {
-              edgesArr[i] = edgesArr[i].replace(/\r$/, "")
+            for (let i = 0; i < edgesArr.length; i++) {
+              edgesArr[i] = edgesArr[i].replace(/\r$/, "");
               const edgesWeight = edgesArr[i].split("-");
-              formattedEdges.push({source: edgesWeight[0], target: edgesWeight[1], weight: +edgesWeight[2]})
+              formattedEdges.push({
+                source: edgesWeight[0],
+                target: edgesWeight[1],
+                weight: +edgesWeight[2],
+              });
             }
             graphBranchBound.drawGraph(formattedVertices, formattedEdges);
 
@@ -838,6 +955,3 @@ function scrollToGraph() {
     );
   });
 }
-
-
-
